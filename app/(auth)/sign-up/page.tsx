@@ -2,8 +2,11 @@
 
 import AuthForm, { AuthFormData } from "@/components/auth/AuthForm";
 import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 const SignUpPage = () => {
+    const router = useRouter()
+
   const handleSignUp = async (data: AuthFormData) => {
     if (!data.name) {
       throw new Error("Name is required");
@@ -24,6 +27,12 @@ const SignUpPage = () => {
     }
 
     console.log("Sign Up Response:", signUpResponse);
+
+    if(signUpResponse) {
+        router.push('/')
+        router.refresh()
+    }
+
   };
 
   return (
