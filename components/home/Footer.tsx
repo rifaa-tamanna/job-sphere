@@ -2,7 +2,6 @@ import Link from "next/link"
 import { BriefcaseBusiness } from "lucide-react"
 import { FaFacebookF, FaGithub, FaLinkedinIn } from "react-icons/fa"
 
-
 const footerGroups = [
   {
     title: "Product",
@@ -96,8 +95,9 @@ export default function FooterSection() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={social.label}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D6D4CE] text-[#777980] transition-all duration-300 hover:-translate-y-1 hover:border-[#25262B] hover:bg-[#25262B] hover:text-white dark:border-[#303137] dark:text-[#92939A] dark:hover:border-[#EAE7DE] dark:hover:bg-[#EAE7DE] dark:hover:text-[#191A1E]"
                     >
-                      <Icon size={20} />
+                      <Icon size={18} />
                     </Link>
                   )
                 })}
@@ -109,6 +109,7 @@ export default function FooterSection() {
                 <h3 className="font-[family-name:var(--font-space-mono)] text-[11px] font-bold tracking-[0.14em] text-[#55575F] uppercase dark:text-[#C1BEB5]">
                   {group.title}
                 </h3>
+
                 <ul className="mt-5 space-y-3.5">
                   {group.links.map((link) => (
                     <li key={link.label}>
@@ -126,7 +127,23 @@ export default function FooterSection() {
           </div>
 
           <div className="flex flex-col gap-4 pt-6 text-[11px] text-[#92939A] sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} JobSphere. All rights reserved.</p>
+            <div className="flex flex-col gap-1.5">
+              <p>
+                © {new Date().getFullYear()} JobSphere. All rights reserved.
+              </p>
+
+              <p>
+                Built & Developed by{" "}
+                <Link
+                  href="https://rifaa-tamanna-portfolio.vercel.app"
+                  className="text-sm font-semibold text-[#55575F] transition-colors hover:text-[#25262B] dark:text-[#C1BEB5] dark:hover:text-[#F1EEE6]"
+                >
+                  Rifa Tamanna
+                </Link>
+                .
+              </p>
+            </div>
+
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <Link
                 href="/terms"
@@ -134,12 +151,14 @@ export default function FooterSection() {
               >
                 Terms of Service
               </Link>
+
               <Link
                 href="/privacy"
                 className="transition-colors hover:text-[#25262B] dark:hover:text-[#F1EEE6]"
               >
                 Privacy Policy
               </Link>
+
               <Link
                 href="/contact"
                 className="transition-colors hover:text-[#25262B] dark:hover:text-[#F1EEE6]"
