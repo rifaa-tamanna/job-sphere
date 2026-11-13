@@ -15,7 +15,6 @@ import {
   ChartNoAxesCombined,
   Plus,
   FileUser,
-  Search,
   LogOut,
   Briefcase,
   Tags,
