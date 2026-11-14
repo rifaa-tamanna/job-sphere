@@ -133,7 +133,7 @@ function IconInput({
 
 export default function NewJobPage() {
   const [isRemote, setIsRemote] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+  const [message] = useState<string | null>(null)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -182,7 +182,7 @@ export default function NewJobPage() {
                 Recruiter Portal
               </div>
 
-              <h1 className="mt-3 font-[family-name:var(--font-bodoni)] text-4xl font-semibold tracking-[-1.5px] text-[#24252A] sm:text-5xl lg:text-[56px] dark:text-[#EAE7DE]">
+              <h1 className="mt-3 font-[family-name:var(--font-bodoni)] text-4xl font-semibold tracking-[-1.5px] text-[#24252A] sm:text-5xl lg:text-[50px] dark:text-[#EAE7DE]">
                 Post a New Job
               </h1>
 
@@ -272,13 +272,20 @@ export default function NewJobPage() {
                   </FieldLabel>
 
                   <Select name="category" required>
-                    <SelectTrigger id="job-category" className={inputClasses}>
+                    <SelectTrigger
+                      id="job-category"
+                      className={`${inputClasses} flex items-center justify-between text-sm font-normal data-[placeholder]:text-[#A5A39C] dark:data-[placeholder]:text-[#777980]`}
+                    >
                       <SelectValue placeholder="Select job category" />
                     </SelectTrigger>
 
-                    <SelectContent>
+                    <SelectContent className="rounded-lg border border-[#D6D4CE] bg-white text-[#25262B] shadow-md dark:border-[#414249] dark:bg-[#222329] dark:text-[#EAE7DE]">
                       {jobCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
+                        <SelectItem
+                          key={category}
+                          value={category}
+                          className="cursor-pointer text-sm focus:bg-[#F0EFEA] focus:text-[#25262B] dark:focus:bg-[#303137] dark:focus:text-[#EAE7DE]"
+                        >
                           {category}
                         </SelectItem>
                       ))}
@@ -423,14 +430,18 @@ export default function NewJobPage() {
                     <Select name="frequency">
                       <SelectTrigger
                         id="salary-frequency"
-                        className={inputClasses}
+                        className={`${inputClasses} flex items-center justify-between text-sm font-normal data-[placeholder]:text-[#A5A39C] dark:data-[placeholder]:text-[#777980]`}
                       >
                         <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
 
-                      <SelectContent>
+                      <SelectContent className="rounded-lg border border-[#D6D4CE] bg-white text-[#25262B] shadow-md dark:border-[#414249] dark:bg-[#222329] dark:text-[#EAE7DE]">
                         {salaryFrequencies.map((frequency) => (
-                          <SelectItem key={frequency} value={frequency}>
+                          <SelectItem
+                            key={frequency}
+                            value={frequency}
+                            className="cursor-pointer text-sm focus:bg-[#F0EFEA] focus:text-[#25262B] dark:focus:bg-[#303137] dark:focus:text-[#EAE7DE]"
+                          >
                             {frequency}
                           </SelectItem>
                         ))}
