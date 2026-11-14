@@ -19,6 +19,8 @@ import {
   Briefcase,
   Tags,
   Bell,
+  ChevronRight,
+  ArrowUpRight,
 } from "lucide-react"
 
 import { useSession, signOut } from "@/lib/auth-client"
@@ -244,39 +246,75 @@ export function DashboardSidebar() {
     .sort((a, b) => b.url.length - a.url.length)[0]
 
   return (
-    <Sidebar>
-      {/* Header */}
-      <SidebarHeader className="px-4 pt-5 pb-4">
-        <Link href="/" className="flex items-center gap-2 px-2">
-          <Briefcase className="size-7 text-primary" />
+    <Sidebar className="border-r border-[#D6D4CE] bg-[#F8F7F3] dark:border-[#383A40] dark:bg-[#191A1E]">
 
-          <span className="text-2xl font-[var(--font-bodoni)] font-bold tracking-wide text-sidebar-foreground">
-            JobSphere
-          </span>
+      {/* Header */}
+      <SidebarHeader className="px-4 pt-6 pb-4">
+
+        {/* Logo */}
+        <Link
+          href="/"
+          className="group flex items-center gap-3 px-2"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#A5A39C] bg-[#25262B] text-[#EAE7DE] transition-transform duration-300 group-hover:-rotate-6 dark:border-[#777980]">
+            <Briefcase size={19} strokeWidth={1.6} />
+          </div>
+
+          <div className="flex items-baseline gap-1">
+            <span className="font-[family-name:var(--font-bodoni)] text-[29px] font-semibold tracking-[-1.5px] text-[#24252A] dark:text-[#EAE7DE]">
+              Job
+            </span>
+
+            <span className="font-[family-name:var(--font-space-mono)] text-[13px] font-bold tracking-[-0.8px] text-[#777980] dark:text-[#A9A9A7]">
+              SPHERE
+            </span>
+
+            <span className="mb-1 size-1.5 rounded-full bg-[#96938B]" />
+          </div>
         </Link>
 
         {/* User Info */}
-        <div className="mt-4 flex items-center gap-3 rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-            {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
-          </div>
+        <div className="mt-7 rounded-xl border border-[#D6D4CE] bg-white p-3.5 transition-colors dark:border-[#383A40] dark:bg-[#222329]">
+          <div className="flex items-center gap-3">
 
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-sidebar-foreground">
-              {session?.user?.name || "User"}
-            </p>
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#D6D4CE] bg-[#F0EFEA] font-[family-name:var(--font-manrope)] text-sm font-bold text-[#25262B] dark:border-[#44464B] dark:bg-[#35363C] dark:text-[#EAE7DE]">
+              {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+            </div>
 
-            <p className="text-[10px] font-[var(--font-space-mono)] text-muted-foreground capitalize">
-              {role} Portal
-            </p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-[family-name:var(--font-manrope)] text-sm font-bold text-[#25262B] dark:text-[#EAE7DE]">
+                {session?.user?.name || "User"}
+              </p>
+
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className="size-1.5 rounded-full bg-[#7D9B78]" />
+
+                <p className="font-[family-name:var(--font-space-mono)] text-[9px] uppercase tracking-[1px] text-[#92939A]">
+                  {role} portal
+                </p>
+              </div>
+            </div>
+
+            <ChevronRight className="size-4 text-[#A5A39C] dark:text-[#777980]" />
+
           </div>
         </div>
+
       </SidebarHeader>
 
-      {/* Menu Items */}
-      <SidebarContent className="px-3 py-3">
-        <SidebarGroup>
-          <SidebarMenu>
+      {/* Navigation */}
+      <SidebarContent className="px-3 py-5">
+
+        <SidebarGroup className="gap-3">
+
+          <div className="px-3">
+            <p className="font-[family-name:var(--font-space-mono)] text-[9px] font-bold uppercase tracking-[2px] text-[#A5A39C] dark:text-[#777980]">
+              Main Menu
+            </p>
+          </div>
+
+          <SidebarMenu className="gap-1.5">
+
             {!isPending &&
               menuItems.map((item) => {
                 const Icon = item.icon
@@ -286,32 +324,65 @@ export function DashboardSidebar() {
 
                 return (
                   <SidebarMenuItem key={item.id}>
+
                     <SidebarMenuButton
                       render={<Link href={item.url} />}
                       isActive={isActive}
                       tooltip={item.name}
-                      className="h-10 rounded-lg px-3 text-sm font-[var(--font-manrope)] transition-all duration-200"
+                      className={`
+                        relative h-11 rounded-lg px-3
+                        font-[family-name:var(--font-manrope)]
+                        text-[13px] font-semibold
+                        transition-all duration-200
+
+                        ${
+                          isActive
+                            ? "bg-[#EAE8E1] text-[#24252A] hover:bg-[#EAE8E1] dark:bg-[#303137] dark:text-[#EAE7DE] dark:hover:bg-[#303137]"
+                            : "text-[#777980] hover:bg-[#EE EDE7] hover:text-[#24252A] dark:text-[#A5A5A2] dark:hover:bg-[#292A30] dark:hover:text-[#EAE7DE]"
+                        }
+                      `}
                     >
-                      <Icon className="size-[18px]" />
+                      {isActive && (
+                        <span className="absolute left-0 top-2.5 h-6 w-[3px] rounded-r-full bg-[#777980] dark:bg-[#D6D4CE]" />
+                      )}
+
+                      <Icon
+                        className={`size-[18px] shrink-0 ${
+                          isActive
+                            ? "text-[#44464D] dark:text-[#EAE7DE]"
+                            : ""
+                        }`}
+                        strokeWidth={1.8}
+                      />
+
                       <span>{item.name}</span>
+
                     </SidebarMenuButton>
+
                   </SidebarMenuItem>
                 )
               })}
+
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="gap-3 px-3 pb-5">
+      <SidebarFooter className="gap-4 border-t border-[#D6D4CE] px-4 pt-5 pb-6 dark:border-[#383A40]">
+
+        {/* Bottom Action */}
         <Link
           href={bottomAction.url}
-          className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          className="group flex h-11 items-center justify-center gap-2 rounded-lg bg-[#25262B] px-3 font-[family-name:var(--font-space-mono)] text-[11px] font-bold tracking-wide text-[#EAE7DE] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#44464D] dark:bg-[#E5E2D9] dark:text-[#202126] dark:hover:bg-white"
         >
-          <ActionIcon className="size-4" />
+          <ActionIcon className="size-4 transition-transform duration-200 group-hover:rotate-90" />
+
           <span>{bottomAction.name}</span>
+
+          <ArrowUpRight className="size-3.5 opacity-60 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
         </Link>
 
+        {/* Logout */}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -320,13 +391,20 @@ export function DashboardSidebar() {
                 router.push("/")
                 router.refresh()
               }}
-              className="h-10 rounded-lg px-3 text-sm font-[var(--font-manrope)] text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              className="h-10 rounded-lg px-3 font-[family-name:var(--font-manrope)] text-[13px] font-semibold text-[#777980] transition-colors hover:bg-[#F0EAE7] hover:text-[#A34F48] dark:text-[#A5A5A2] dark:hover:bg-[#302725] dark:hover:text-[#D78C82]"
             >
               <LogOut className="size-[18px]" />
               <span>Logout</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        <div className="px-3">
+          <p className="font-[family-name:var(--font-space-mono)] text-[9px] tracking-wide text-[#A5A39C] dark:text-[#777980]">
+            JOBSPHERE © 2026
+          </p>
+        </div>
+
       </SidebarFooter>
     </Sidebar>
   )
