@@ -84,15 +84,15 @@ const menuItemsByRole = {
       icon: LayoutDashboard,
     },
     {
-      id: "jobs",
-      name: "My Jobs",
+      id: "post-job",
+      name: "Manage Jobs",
       url: "/dashboard/recruiter/jobs",
       icon: BriefcaseBusiness,
     },
     {
-      id: "post-job",
-      name: "Post a Job",
-      url: "/dashboard/recruiter/post-job",
+      id: "jobs",
+      name: "Add Job",
+      url: "/dashboard/recruiter/jobs/new",
       icon: Plus,
     },
     {
@@ -212,11 +212,17 @@ const bottomActionByRole = {
 }
 
 function isUserRole(value: unknown): value is UserRole {
-  return value === "seeker" || value === "recruiter" || value === "admin"
+  return (
+    value === "seeker" ||
+    value === "recruiter" ||
+    value === "admin"
+  )
 }
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
   const { data: session, isPending } = useSession()
 
   const role: UserRole = isUserRole(session?.user?.role)
@@ -227,7 +233,15 @@ export function DashboardSidebar() {
   const bottomAction = bottomActionByRole[role]
   const ActionIcon = bottomAction.icon
 
-  const router = useRouter()
+  // Find the most specific matching menu item
+  const activeMenuItem = menuItems
+    .filter(
+      (item) =>
+        pathname === item.url ||
+        (item.id !== "dashboard" &&
+          pathname.startsWith(`${item.url}/`))
+    )
+    .sort((a, b) => b.url.length - a.url.length)[0]
 
   return (
     <Sidebar>
@@ -268,9 +282,7 @@ export function DashboardSidebar() {
                 const Icon = item.icon
 
                 const isActive =
-                  pathname === item.url ||
-                  (item.id !== "dashboard" &&
-                    pathname.startsWith(`${item.url}/`))
+                  activeMenuItem?.id === item.id
 
                 return (
                   <SidebarMenuItem key={item.id}>
@@ -319,4 +331,3 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
-

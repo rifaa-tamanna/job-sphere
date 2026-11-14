@@ -18,14 +18,6 @@ import {
 
 import { authClient } from "@/lib/auth-client"
 
-const navLinks = [
-  { name: "Home", href: "/" },
-  { name: "Find Jobs", href: "/jobs" },
-  { name: "Companies", href: "/companies" },
-  { name: "Career Advice", href: "/career-advice" },
-  { name: "About Us", href: "/about" },
-]
-
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
@@ -38,6 +30,15 @@ export default function Navbar() {
   const [signingOut, setSigningOut] = useState(false)
 
   const { data: session, isPending } = authClient.useSession()
+
+  const navLinks = [
+    { name: "Home", href: "/" },
+    { name: "Find Jobs", href: "/jobs" },
+    { name: "Companies", href: "/companies" },
+    { name: "Career Advice", href: "/career-advice" },
+    { name: "About Us", href: "/about" },
+    { name: "Dashboard", href: `/dashboard/${session?.user?.role}` },
+  ]
 
   useEffect(() => {
     setMounted(true)
@@ -75,10 +76,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#D6D4CE] bg-[#F8F7F3]/95 backdrop-blur-xl dark:border-[#383A40] dark:bg-[#191A1E]/95">
       <nav className="mx-auto flex h-[82px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
-
         {/* Logo */}
         <Link href="/" className="group flex shrink-0 items-center gap-3">
-
           {/* Logo Icon */}
           <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#A5A39C] bg-[#25262B] text-[#E8E5DC] transition-transform duration-300 group-hover:rotate-[-8deg] dark:border-[#777980]">
             <BriefcaseBusiness size={21} strokeWidth={1.5} />
@@ -129,7 +128,6 @@ export default function Navbar() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-3 lg:flex">
-
           {/* Search Toggle */}
           <button
             onClick={() => setSearchOpen(!searchOpen)}
@@ -157,12 +155,10 @@ export default function Navbar() {
 
           {/* Authentication Actions */}
           <div className="flex items-center gap-4">
-
             {isPending ? null : session?.user ? (
               <>
                 {/* Logged In User */}
                 <div className="flex items-center gap-3 rounded-full border border-[#D6D4CE] bg-white px-4 py-2.5 shadow-sm transition-colors dark:border-[#44464B] dark:bg-[#191A1E]">
-
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25262B] text-[#EAE7DE] dark:bg-[#E5E2D9] dark:text-[#202126]">
                     <UserRound size={16} strokeWidth={1.7} />
                   </div>
@@ -199,30 +195,14 @@ export default function Navbar() {
                 className="group relative px-2 py-3 font-[family-name:var(--font-space-mono)] text-[12px] font-bold tracking-wide text-[#373940] transition-colors duration-300 hover:text-[#888A91] dark:text-[#E4E1DA] dark:hover:text-white"
               >
                 SIGN IN
-
                 <span className="absolute bottom-1 left-2 h-px w-0 bg-[#25262B] transition-all duration-300 group-hover:w-[calc(100%-16px)] dark:bg-[#E5E2D9]" />
               </Link>
             )}
-
-            {/* Post a Job - Always Visible */}
-            <Link
-              href="/post-job"
-              className="group flex items-center gap-3 rounded-full border border-[#25262B] bg-[#25262B] px-5 py-3.5 font-[family-name:var(--font-space-mono)] text-[12px] font-bold tracking-wide text-[#F2F0E9] shadow-[0_8px_20px_-12px_rgba(36,37,42,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#41434A] hover:shadow-lg dark:border-[#E5E2D9] dark:bg-[#E5E2D9] dark:text-[#202126] dark:hover:bg-white"
-            >
-              POST A JOB
-
-              <ArrowUpRight
-                size={16}
-                strokeWidth={1.8}
-                className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
-              />
-            </Link>
           </div>
         </div>
 
         {/* Mobile Actions */}
         <div className="flex items-center gap-2 lg:hidden">
-
           {/* Theme Toggle */}
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
@@ -276,7 +256,6 @@ export default function Navbar() {
       {/* Mobile Navigation */}
       {mobileOpen && (
         <div className="border-t border-[#D6D4CE] bg-[#F8F7F3] px-6 py-7 lg:hidden dark:border-[#383A40] dark:bg-[#191A1E]">
-
           <div className="flex flex-col gap-1">
             {navLinks.map((link, index) => {
               const active = pathname === link.href
@@ -292,9 +271,7 @@ export default function Navbar() {
                   }`}
                 >
                   <span>{link.name}</span>
-                  <span className="text-[11px] opacity-50">
-                    0{index + 1}
-                  </span>
+                  <span className="text-[11px] opacity-50">0{index + 1}</span>
                 </Link>
               )
             })}
@@ -302,12 +279,10 @@ export default function Navbar() {
 
           {/* Mobile Authentication Actions */}
           <div className="mt-6 flex flex-col gap-3">
-
             {isPending ? null : session?.user ? (
               <>
                 {/* Mobile User Badge */}
                 <div className="flex items-center gap-3 rounded-full border border-[#D6D4CE] bg-white px-4 py-3 shadow-sm dark:border-[#44464B] dark:bg-[#191A1E]">
-
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25262B] text-[#EAE7DE] dark:bg-[#E5E2D9] dark:text-[#202126]">
                     <UserRound size={16} strokeWidth={1.7} />
                   </div>
@@ -343,15 +318,6 @@ export default function Navbar() {
                 SIGN IN
               </Link>
             )}
-
-            {/* Mobile Post a Job */}
-            <Link
-              href="/post-job"
-              className="flex items-center justify-center gap-2 rounded-full bg-[#25262B] py-3.5 font-[family-name:var(--font-space-mono)] text-xs font-bold tracking-wide text-white dark:bg-[#E5E2D9] dark:text-[#202126]"
-            >
-              POST A JOB
-              <ArrowUpRight size={16} />
-            </Link>
           </div>
         </div>
       )}
