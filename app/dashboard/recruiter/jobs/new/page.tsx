@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { createJob } from "@/lib/actions/jobs"
 
 const jobTypes = ["Full-time", "Part-time", "Contract", "Internship"]
 
@@ -134,22 +135,25 @@ export default function NewJobPage() {
   const [isRemote, setIsRemote] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const data = Object.fromEntries(new FormData(event.currentTarget).entries())
 
-    console.log("[Post a New Job] collected form data:", {
+    const jobData = {
       ...data,
       isRemote,
-    })
+    }
 
-    setMessage(`"${data.title}" has been submitted for review.`)
+    console.log("[Post a New Job] collected form data:", jobData)
+
+    const result = await createJob(jobData)
+
+    console.log("result", result)
   }
 
   return (
     <main className="min-h-screen w-full min-w-0 rounded-2xl bg-[#F8F7F3] px-4 py-7 text-[#24252A] sm:px-6 md:ml-5 md:w-[calc(100%-1.25rem)] lg:px-9 lg:py-10 dark:bg-[#191A1E] dark:text-[#EAE7DE]">
-        
       <div className="w-full space-y-7">
         {/* Page Header */}
         <section className="relative overflow-hidden border-b border-[#D6D4CE] pb-7 dark:border-[#383A40]">
