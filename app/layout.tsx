@@ -1,11 +1,12 @@
-import { Geist, IBM_Plex_Mono, Cormorant_Garamond } from "next/font/google"
+import {
+  Geist,
+  IBM_Plex_Mono,
+  Cormorant_Garamond,
+} from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import Navbar from "@/components/home/Navbar"
-import FooterSection from "@/components/home/Footer"
-import BackToTop from "@/components/home/BackToTop"
 
 const geist = Geist({
   subsets: ["latin"],
@@ -44,10 +45,7 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <Navbar />
           {children}
-          <BackToTop />
-          <FooterSection />
         </ThemeProvider>
       </body>
     </html>
