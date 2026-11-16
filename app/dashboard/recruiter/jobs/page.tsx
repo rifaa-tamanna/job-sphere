@@ -1,4 +1,3 @@
-
 import Link from "next/link"
 import {
   Bug,
@@ -55,9 +54,11 @@ interface JobDocument {
   posted: string
 }
 
-// UI job type
+// UI job type (plain serializable data only — no functions,
+// so it can safely cross the Server → Client Component boundary)
 interface JobPost {
   id: string
+  _id: string
   title: string
   department: string
   company: string
@@ -68,21 +69,17 @@ interface JobPost {
   status: JobStatus
   deadline: string
   posted: string
-  icon: LucideIcon
 }
 
-// Department icon mapping
-function getDepartmentIcon(department: string): LucideIcon {
-  const icons: Record<string, LucideIcon> = {
-    Engineering: Code,
-    Design: Palette,
-    Infrastructure: Server,
-    Marketing: Megaphone,
-    Quality: Bug,
-    Analytics: Bug,
-  }
-
-  return icons[department] || Code
+// Department icon mapping (module-level so icon references are stable
+// and never created during render)
+const departmentIcons: Record<string, LucideIcon> = {
+  Engineering: Code,
+  Design: Palette,
+  Infrastructure: Server,
+  Marketing: Megaphone,
+  Quality: Bug,
+  Analytics: Bug,
 }
 
 // Format deadline date
@@ -138,20 +135,21 @@ function StatusBadge({ status }: { status: JobStatus }) {
 }
 
 // Row Actions
-export function RowActions({ title }: { title: string }) {
+export function RowActions({ job }: { job: JobPost }) {
   return (
     <div className="flex shrink-0 items-center justify-end gap-1.5">
       <Button
         variant="outline"
         size="sm"
         className="h-8 shrink-0 gap-1.5 rounded-lg border-[#D6D4CE] bg-transparent px-3 font-[family-name:var(--font-space-mono)] text-[10px] font-bold tracking-wide text-[#373940] transition-all hover:border-[#777980] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:text-[#EAE7DE] dark:hover:border-[#777980] dark:hover:bg-[#303137]"
-        aria-label={`Update ${title}`}
+        aria-label={`Update ${job.title}`}
       >
         <Pencil className="size-3.5 shrink-0" />
         Update
       </Button>
 
-      <DeleteJobDialog jobTitle={title} />
+      {/* Delete Dialog Component */}
+      <DeleteJobDialog job={job} />
 
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -159,13 +157,13 @@ export function RowActions({ title }: { title: string }) {
             <Button
               variant="ghost"
               size="icon"
-              aria-label={`More actions for ${title}`}
+              aria-label={`More actions for ${job.title}`}
               title="More actions"
               className="size-8 shrink-0 rounded-lg text-[#777980] hover:bg-[#E9E7E0] hover:text-[#25262B] dark:text-[#A5A5A2] dark:hover:bg-[#303137] dark:hover:text-[#EAE7DE]"
             />
           }
         >
-          <EllipsisVertical className="size-4" />
+        <EllipsisVertical className="size-4" />
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
@@ -196,10 +194,10 @@ export function RowActions({ title }: { title: string }) {
 
 // Responsive Job Card
 function JobCard({ job }: { job: JobPost }) {
-  const Icon = job.icon
+  const Icon = departmentIcons[job.department] ?? Code
 
   return (
-    <li className="min-w-0 rounded-xl border border-[#D6D4CE] bg-white p-4 shadow-sm transition-all duration-300 hover:border-[#A5A39C] dark:border-[#383A40] dark:bg-[#191A1E] dark:hover:border-[#777980] sm:p-5">
+    <li className="min-w-0 rounded-xl border border-[#D6D4CE] bg-white p-4 shadow-sm transition-all duration-300 hover:border-[#A5A39C] sm:p-5 dark:border-[#383A40] dark:bg-[#191A1E] dark:hover:border-[#777980]">
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[#D6D4CE] bg-[#F0EFEA] text-[#55575F] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#C1BEB5]">
@@ -245,7 +243,7 @@ function JobCard({ job }: { job: JobPost }) {
 
         <div className="min-w-0">
           <dt className={labelClasses}>Compensation</dt>
-          <dd className="mt-2 truncate font-[family-name:var(--font-manrope)] text-sm font-medium tabular-nums text-[#25262B] dark:text-[#EAE7DE]">
+          <dd className="mt-2 truncate font-[family-name:var(--font-manrope)] text-sm font-medium text-[#25262B] tabular-nums dark:text-[#EAE7DE]">
             {job.compensation}
           </dd>
         </div>
@@ -253,7 +251,10 @@ function JobCard({ job }: { job: JobPost }) {
         <div>
           <dt className={labelClasses}>Applicants</dt>
           <dd className="mt-2 flex items-center gap-1.5 font-[family-name:var(--font-manrope)] text-sm font-semibold text-[#25262B] dark:text-[#EAE7DE]">
-            <Users aria-hidden className="size-3.5 text-[#777980] dark:text-[#A5A5A2]" />
+            <Users
+              aria-hidden
+              className="size-3.5 text-[#777980] dark:text-[#A5A5A2]"
+            />
             {job.applicants} Candidates
           </dd>
         </div>
@@ -270,7 +271,7 @@ function JobCard({ job }: { job: JobPost }) {
       </dl>
 
       <div className="mt-5 flex justify-end border-t border-[#E4E2DC] pt-3 dark:border-[#303137]">
-        <RowActions title={job.title} />
+        <RowActions job={job} />
       </div>
     </li>
   )
@@ -282,24 +283,28 @@ const ManageJobsPage = async () => {
 
   // Convert MongoDB documents into UI job data
   const jobPosts: JobPost[] = Array.isArray(jobs)
-    ? jobs.map((job) => ({
-        id: typeof job._id === "string" ? job._id : job._id.$oid,
-        title: job.title,
-        department: job.department,
-        company: job.company,
-        location: job.location,
-        type: job.type,
-        compensation: job.compensation,
-        applicants: job.applicants,
-        status: job.status,
-        deadline: job.deadline,
-        posted: job.posted,
-        icon: getDepartmentIcon(job.department),
-      }))
+    ? jobs.map((job) => {
+        const jobId = typeof job._id === "string" ? job._id : job._id.$oid
+
+        return {
+          id: jobId,
+          _id: jobId,
+          title: job.title,
+          department: job.department,
+          company: job.company,
+          location: job.location,
+          type: job.type,
+          compensation: job.compensation,
+          applicants: job.applicants,
+          status: job.status,
+          deadline: job.deadline,
+          posted: job.posted,
+        }
+      })
     : []
 
   return (
-    <main className="mx-auto min-h-screen w-full min-w-0 max-w-[1400px] overflow-x-clip rounded-2xl bg-[#F8F7F3] px-4 py-6 font-[family-name:var(--font-manrope)] dark:bg-[#191A1E] sm:px-6 lg:px-8 lg:py-8">
+    <main className="mx-auto min-h-screen w-full max-w-[1400px] min-w-0 overflow-x-clip rounded-2xl bg-[#F8F7F3] px-4 py-6 font-[family-name:var(--font-manrope)] sm:px-6 lg:px-8 lg:py-8 dark:bg-[#191A1E]">
       {/* Page Header */}
       <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
@@ -314,7 +319,7 @@ const ManageJobsPage = async () => {
             </span>
           </nav>
 
-          <h1 className="mt-5 font-[family-name:var(--font-manrope)] text-2xl font-extrabold tracking-[-0.8px] text-[#25262B] dark:text-[#EAE7DE] sm:text-3xl">
+          <h1 className="mt-5 font-[family-name:var(--font-manrope)] text-2xl font-extrabold tracking-[-0.8px] text-[#25262B] sm:text-3xl dark:text-[#EAE7DE]">
             Manage Job Posts
           </h1>
 
@@ -335,7 +340,7 @@ const ManageJobsPage = async () => {
       </div>
 
       {/* Desktop Job Table */}
-      <div className="mt-8 hidden w-full min-w-0 max-w-full overflow-x-auto rounded-xl border border-[#D6D4CE] bg-white shadow-sm xl:block dark:border-[#383A40] dark:bg-[#191A1E]">
+      <div className="mt-8 hidden w-full max-w-full min-w-0 overflow-x-auto rounded-xl border border-[#D6D4CE] bg-white shadow-sm xl:block dark:border-[#383A40] dark:bg-[#191A1E]">
         <Table className="w-full min-w-[1120px] table-fixed">
           <TableHeader>
             <TableRow className="border-b border-[#D6D4CE] bg-[#F0EFEA] hover:bg-[#F0EFEA] dark:border-[#383A40] dark:bg-[#25262B] dark:hover:bg-[#25262B]">
@@ -360,7 +365,9 @@ const ManageJobsPage = async () => {
               <TableHead className={`h-14 w-[13%] px-2 ${labelClasses}`}>
                 Deadline
               </TableHead>
-              <TableHead className={`h-14 w-[15%] min-w-[170px] px-3 text-right ${labelClasses}`}>
+              <TableHead
+                className={`h-14 w-[15%] min-w-[170px] px-3 text-right ${labelClasses}`}
+              >
                 Actions
               </TableHead>
             </TableRow>
@@ -369,7 +376,7 @@ const ManageJobsPage = async () => {
           <TableBody>
             {jobPosts.length > 0 ? (
               jobPosts.map((job) => {
-                const Icon = job.icon
+                const Icon = departmentIcons[job.department] ?? Code
 
                 return (
                   <TableRow
@@ -413,14 +420,17 @@ const ManageJobsPage = async () => {
                     </TableCell>
 
                     <TableCell className="px-2 py-4">
-                      <p className="truncate font-[family-name:var(--font-manrope)] text-[11px] font-medium tabular-nums text-[#373940] dark:text-[#D6D4CE]">
+                      <p className="truncate font-[family-name:var(--font-manrope)] text-[11px] font-medium text-[#373940] tabular-nums dark:text-[#D6D4CE]">
                         {job.compensation}
                       </p>
                     </TableCell>
 
                     <TableCell className="px-2 py-4">
                       <span className="flex items-center gap-1.5 font-[family-name:var(--font-manrope)] text-xs font-semibold text-[#373940] dark:text-[#D6D4CE]">
-                        <Users aria-hidden className="size-3.5 shrink-0 text-[#777980] dark:text-[#A5A5A2]" />
+                        <Users
+                          aria-hidden
+                          className="size-3.5 shrink-0 text-[#777980] dark:text-[#A5A5A2]"
+                        />
                         {job.applicants}
                       </span>
                     </TableCell>
@@ -429,7 +439,7 @@ const ManageJobsPage = async () => {
                       <StatusBadge status={job.status} />
                     </TableCell>
 
-                    <TableCell className="whitespace-nowrap px-2 py-4">
+                    <TableCell className="px-2 py-4 whitespace-nowrap">
                       <p className="font-[family-name:var(--font-manrope)] text-[11px] text-[#373940] dark:text-[#D6D4CE]">
                         {formatDeadline(job.deadline)}
                       </p>
@@ -438,8 +448,8 @@ const ManageJobsPage = async () => {
                       </p>
                     </TableCell>
 
-                    <TableCell className="whitespace-nowrap px-2 py-4">
-                      <RowActions title={job.title} />
+                    <TableCell className="px-2 py-4 whitespace-nowrap">
+                      <RowActions job={job} />
                     </TableCell>
                   </TableRow>
                 )

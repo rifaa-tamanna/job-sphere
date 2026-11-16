@@ -1,3 +1,5 @@
+"use client"
+
 import { Trash2Icon } from "lucide-react"
 
 import {
@@ -12,17 +14,52 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+
+import { toast } from "@/components/ui/toast"
 import { Button } from "@/components/ui/button"
+import { deleteJob } from "@/lib/actions/jobs"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 type DeleteJobDialogProps = {
-  jobTitle: string
+  job: {
+    _id: string
+    title: string
+  }
 }
 
-export function DeleteJobDialog({ jobTitle }: DeleteJobDialogProps) {
+export function DeleteJobDialog({ job }: DeleteJobDialogProps) {
+  const [open, setOpen] = useState<boolean>(false)
+  const router = useRouter()
+
+  const handleDelete = async () => {
+    const res = await deleteJob(job._id)
+
+    console.log("Deleting", job._id, res)
+
+    if (res.deletedCount) {
+      setOpen(false)
+      toast.add({
+        title: "Job Deleted",
+        description: "The job has been permanently deleted",
+      })
+      router.refresh()
+    }
+  }
+
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger
-        render={<Button variant="destructive"> < Trash2Icon /> </Button>}
+        render={
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            aria-label={`Delete ${job.title}`}
+          >
+            <Trash2Icon className="size-4" />
+          </Button>
+        }
       />
 
       <AlertDialogContent size="sm">
@@ -34,17 +71,15 @@ export function DeleteJobDialog({ jobTitle }: DeleteJobDialogProps) {
           <AlertDialogTitle>Delete job?</AlertDialogTitle>
 
           <AlertDialogDescription>
-            Are you sure you want to delete "{jobTitle}"?
-            This action cannot be undone.
+            Are you sure you want to delete &quot;{job.title}&quot;? This action
+            cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel variant="outline">
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive">
+          <AlertDialogAction variant="destructive" onClick={handleDelete}>
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>
