@@ -39,6 +39,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { getJobs } from "@/lib/api/jobs"
+import { ReopenJobItem } from "@/app/components/ReopenJobItem"
 
 // Job types
 type JobStatus = "Active" | "Expired" | "Closed"
@@ -202,6 +203,7 @@ function WorkModeBadge({ isRemote }: { isRemote: boolean }) {
 }
 
 // Row Actions
+
 export function RowActions({ job }: { job: JobPost }) {
   return (
     <div className="flex shrink-0 items-center justify-end gap-1.5">
@@ -228,19 +230,21 @@ export function RowActions({ job }: { job: JobPost }) {
           align="end"
           className="w-44 border-[#D6D4CE] bg-[#F8F7F3] dark:border-[#44464B] dark:bg-[#25262B]"
         >
-          <DropdownMenuItem className="font-[family-name:var(--font-manrope)] text-xs">
+          <DropdownMenuItem className="font-[family-name:var(--font-space-mono)] text-xs">
             Update listing
           </DropdownMenuItem>
 
           <DuplicateJobItem job={job} />
 
-          <CloseJobItem job={job} />
+          {job.status === "Active" && <CloseJobItem job={job} />}
+
+          {job.status === "Closed" && <ReopenJobItem job={job} />}
 
           <DropdownMenuSeparator className="bg-[#D6D4CE] dark:bg-[#44464B]" />
 
           <DropdownMenuItem
             variant="destructive"
-            className="font-[family-name:var(--font-manrope)] text-xs"
+            className="font-[family-name:var(--font-space-mono)] text-xs"
           >
             Delete posting
           </DropdownMenuItem>
@@ -465,7 +469,7 @@ const ManageJobsPage = async ({
   }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[1400px] min-w-0 overflow-x-clip rounded-2xl bg-[#F8F7F3] px-4 py-6 font-[family-name:var(--font-manrope)] sm:px-6 lg:px-8 lg:py-8 dark:bg-[#191A1E]">
+    <main className="mx-auto min-h-screen w-full max-w-[1400px] min-w-0 overflow-x-clip rounded-2xl bg-[#F8F7F3] px-4 py-6 font-[family-name:var(--font-space-mono)] sm:px-6 lg:px-8 lg:py-8 dark:bg-[#191A1E]">
       {/* Page Header */}
       <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
