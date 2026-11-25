@@ -2,6 +2,7 @@ import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
 import { EditJobDialog } from "@/app/components/EditJobDialog"
 import { DuplicateJobItem } from "@/app/components/DuplicateJobItem"
 import { CloseJobItem } from "@/app/components/CloseJobItem"
+import { JobSearch } from "@/app/components/JobSearch"
 
 import Link from "next/link"
 import {
@@ -342,11 +343,15 @@ function JobCard({ job }: { job: JobPost }) {
 const ManageJobsPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{
+    status?: string
+    q?: string
+  }>
 }) => {
   const params = await searchParams
 
   const activeFilter = params.status?.toLowerCase() ?? "all"
+  const searchQuery = params.q?.trim() ?? ""
 
   const jobs: JobDocument[] = await getJobs()
 
@@ -383,17 +388,27 @@ const ManageJobsPage = async ({
       })
     : []
 
-  // Status filter logic
+  // Status Filter
   const validFilters = ["all", "active", "closed", "expired"]
 
   const selectedFilter = validFilters.includes(activeFilter)
     ? activeFilter
     : "all"
 
-  const filteredJobPosts =
-    selectedFilter === "all"
-      ? jobPosts
-      : jobPosts.filter((job) => job.status.toLowerCase() === selectedFilter)
+  // Search + Status Filter
+  const filteredJobPosts = jobPosts.filter((job) => {
+    const matchesStatus =
+      selectedFilter === "all" || job.status.toLowerCase() === selectedFilter
+
+    const searchText = searchQuery.toLowerCase()
+
+    const matchesSearch =
+      job.title.toLowerCase().includes(searchText) ||
+      job.company.toLowerCase().includes(searchText) ||
+      job.category.toLowerCase().includes(searchText)
+
+    return matchesStatus && matchesSearch
+  })
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[1400px] min-w-0 overflow-x-clip rounded-2xl bg-[#F8F7F3] px-4 py-6 font-[family-name:var(--font-manrope)] sm:px-6 lg:px-8 lg:py-8 dark:bg-[#191A1E]">
@@ -431,31 +446,51 @@ const ManageJobsPage = async ({
         </Button>
       </div>
 
-      {/* Job Status Filters */}
-      <div className="mt-8 flex flex-wrap items-center gap-2">
-        {[
-          { label: "All Jobs", value: "all" },
-          { label: "Active", value: "active" },
-          { label: "Closed", value: "closed" },
-          { label: "Expired", value: "expired" },
-        ].map((filter) => (
-          <Link
-            key={filter.value}
-            href={
-              filter.value === "all"
-                ? "/dashboard/recruiter/jobs"
-                : `/dashboard/recruiter/jobs?status=${filter.value}`
-            }
-            className={cn(
-              "rounded-lg border px-4 py-2 font-[family-name:var(--font-space-mono)] text-[10px] font-bold tracking-wide transition-colors",
-              selectedFilter === filter.value
-                ? "border-[#25262B] bg-[#25262B] text-[#EAE7DE] dark:border-[#EAE7DE] dark:bg-[#EAE7DE] dark:text-[#191A1E]"
-                : "border-[#D6D4CE] bg-white text-[#777980] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#A5A5A2] dark:hover:bg-[#303137]"
-            )}
-          >
-            {filter.label}
-          </Link>
-        ))}
+      {/* Job Filters + Search */}
+      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Job Status Filters */}
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { label: "All Jobs", value: "all" },
+            { label: "Active", value: "active" },
+            { label: "Closed", value: "closed" },
+            { label: "Expired", value: "expired" },
+          ].map((filter) => (
+            <Link
+              key={filter.value}
+              href={(() => {
+                const params = new URLSearchParams()
+
+                if (filter.value !== "all") {
+                  params.set("status", filter.value)
+                }
+
+                if (searchQuery) {
+                  params.set("q", searchQuery)
+                }
+
+                const queryString = params.toString()
+
+                return queryString
+                  ? `/dashboard/recruiter/jobs?${queryString}`
+                  : "/dashboard/recruiter/jobs"
+              })()}
+              className={cn(
+                "rounded-lg border px-4 py-2 font-[family-name:var(--font-space-mono)] text-[10px] font-bold tracking-wide transition-colors",
+                selectedFilter === filter.value
+                  ? "border-[#25262B] bg-[#25262B] text-[#EAE7DE] dark:border-[#EAE7DE] dark:bg-[#EAE7DE] dark:text-[#191A1E]"
+                  : "border-[#D6D4CE] bg-white text-[#777980] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#A5A5A2] dark:hover:bg-[#303137]"
+              )}
+            >
+              {filter.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Job Search */}
+        <div className="w-full sm:w-auto sm:max-w-md sm:min-w-[280px]">
+          <JobSearch initialQuery={searchQuery} />
+        </div>
       </div>
 
       {/* Desktop Job Table */}
