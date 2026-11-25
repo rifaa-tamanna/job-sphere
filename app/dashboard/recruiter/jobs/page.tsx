@@ -1,3 +1,8 @@
+import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
+import { EditJobDialog } from "@/app/components/EditJobDialog"
+import { DuplicateJobItem } from "@/app/components/DuplicateJobItem"
+import { CloseJobItem } from "@/app/components/CloseJobItem"
+
 import Link from "next/link"
 import {
   Bug,
@@ -6,8 +11,6 @@ import {
   EllipsisVertical,
   MapPin,
   Megaphone,
-  Palette,
-  Pencil,
   Plus,
   Server,
   Users,
@@ -31,9 +34,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
 import { cn } from "@/lib/utils"
-import { getJobs } from "@/lib/api/jobs."
-import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
+import { getJobs } from "@/lib/api/jobs"
 
 // Job types
 type JobStatus = "Active" | "Expired" | "Closed"
@@ -41,52 +44,102 @@ type JobType = "Full-time" | "Part-time" | "Contract" | "Internship"
 
 // MongoDB document type
 interface JobDocument {
-  _id: string | { $oid: string }
+  _id: string | { $oid?: string }
   title: string
-  department: string
   company: string
+  category: string
+  Type: string
+  isRemote: boolean
   location: string
-  type: JobType
-  compensation: string
+  minSalary: string | number
+  maxSalary: string | number
+  salaryFrequency: string
+  responsibilities: string
+  requirements: string
   applicants: number
-  status: JobStatus
+  status: string
   deadline: string
   posted: string
 }
 
-// UI job type (plain serializable data only — no functions,
-// so it can safely cross the Server → Client Component boundary)
+// UI job type
 interface JobPost {
   id: string
   _id: string
   title: string
-  department: string
+  category: string
   company: string
   location: string
   type: JobType
+  isRemote: boolean
   compensation: string
+  minSalary: string | number
+  maxSalary: string | number
+  salaryFrequency: string
   applicants: number
   status: JobStatus
   deadline: string
   posted: string
+  responsibilities: string
+  requirements: string
 }
 
-// Department icon mapping (module-level so icon references are stable
-// and never created during render)
+// Category icon mapping
 const departmentIcons: Record<string, LucideIcon> = {
   Engineering: Code,
-  Design: Palette,
+  "Engineering & Tech": Code,
+  Design: Code,
   Infrastructure: Server,
   Marketing: Megaphone,
   Quality: Bug,
   Analytics: Bug,
 }
 
+// Format job type
+function formatJobType(type: string): JobType {
+  const normalized = type?.toLowerCase().trim()
+
+  const types: Record<string, JobType> = {
+    "full-time": "Full-time",
+    "full time": "Full-time",
+    "part-time": "Part-time",
+    "part time": "Part-time",
+    contract: "Contract",
+    internship: "Internship",
+  }
+
+  return types[normalized] ?? "Contract"
+}
+
+// Format job status
+function formatJobStatus(status: string): JobStatus {
+  const normalized = status?.toLowerCase().trim()
+
+  if (normalized === "active") return "Active"
+  if (normalized === "expired") return "Expired"
+
+  return "Closed"
+}
+
+// Format salary
+function formatSalary(
+  minSalary: string | number,
+  maxSalary: string | number,
+  frequency: string
+) {
+  const min = minSalary || "Negotiable"
+  const max = maxSalary || ""
+
+  const range = max ? `${min} - ${max}` : `${min}`
+  const salaryFrequency = frequency ? ` / ${frequency}` : ""
+
+  return `${range}${salaryFrequency}`
+}
+
 // Format deadline date
 function formatDeadline(date: string) {
   if (!date) return "—"
 
-  // Handle YYYY-MM-DD without timezone shifting
   const dateOnly = date.match(/^(\d{4})-(\d{2})-(\d{2})$/)
 
   const parsedDate = dateOnly
@@ -134,21 +187,24 @@ function StatusBadge({ status }: { status: JobStatus }) {
   )
 }
 
+// Remote / On-site Badge
+function WorkModeBadge({ isRemote }: { isRemote: boolean }) {
+  return (
+    <Badge
+      variant="outline"
+      className="h-6 rounded-md border-[#D6D4CE] bg-[#F0EFEA] px-2 font-[family-name:var(--font-manrope)] text-[10px] font-medium text-[#55575F] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#D6D4CE]"
+    >
+      {isRemote ? "Remote" : "On-site"}
+    </Badge>
+  )
+}
+
 // Row Actions
 export function RowActions({ job }: { job: JobPost }) {
   return (
     <div className="flex shrink-0 items-center justify-end gap-1.5">
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-8 shrink-0 gap-1.5 rounded-lg border-[#D6D4CE] bg-transparent px-3 font-[family-name:var(--font-space-mono)] text-[10px] font-bold tracking-wide text-[#373940] transition-all hover:border-[#777980] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:text-[#EAE7DE] dark:hover:border-[#777980] dark:hover:bg-[#303137]"
-        aria-label={`Update ${job.title}`}
-      >
-        <Pencil className="size-3.5 shrink-0" />
-        Update
-      </Button>
+      <EditJobDialog job={job} />
 
-      {/* Delete Dialog Component */}
       <DeleteJobDialog job={job} />
 
       <DropdownMenu>
@@ -163,7 +219,7 @@ export function RowActions({ job }: { job: JobPost }) {
             />
           }
         >
-        <EllipsisVertical className="size-4" />
+          <EllipsisVertical className="size-4" />
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
@@ -173,13 +229,13 @@ export function RowActions({ job }: { job: JobPost }) {
           <DropdownMenuItem className="font-[family-name:var(--font-manrope)] text-xs">
             Update listing
           </DropdownMenuItem>
-          <DropdownMenuItem className="font-[family-name:var(--font-manrope)] text-xs">
-            Duplicate listing
-          </DropdownMenuItem>
-          <DropdownMenuItem className="font-[family-name:var(--font-manrope)] text-xs">
-            Close posting
-          </DropdownMenuItem>
+
+          <DuplicateJobItem job={job} />
+
+          <CloseJobItem job={job} />
+
           <DropdownMenuSeparator className="bg-[#D6D4CE] dark:bg-[#44464B]" />
+
           <DropdownMenuItem
             variant="destructive"
             className="font-[family-name:var(--font-manrope)] text-xs"
@@ -194,7 +250,7 @@ export function RowActions({ job }: { job: JobPost }) {
 
 // Responsive Job Card
 function JobCard({ job }: { job: JobPost }) {
-  const Icon = departmentIcons[job.department] ?? Code
+  const Icon = departmentIcons[job.category] ?? Code
 
   return (
     <li className="min-w-0 rounded-xl border border-[#D6D4CE] bg-white p-4 shadow-sm transition-all duration-300 hover:border-[#A5A39C] sm:p-5 dark:border-[#383A40] dark:bg-[#191A1E] dark:hover:border-[#777980]">
@@ -208,8 +264,9 @@ function JobCard({ job }: { job: JobPost }) {
             <p className="truncate font-[family-name:var(--font-manrope)] text-sm font-bold text-[#25262B] dark:text-[#EAE7DE]">
               {job.title}
             </p>
+
             <p className="mt-1 truncate font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
-              {job.department}
+              {job.category}
             </p>
           </div>
         </div>
@@ -222,10 +279,14 @@ function JobCard({ job }: { job: JobPost }) {
           {job.company}
         </p>
 
-        <p className="mt-1.5 flex items-center gap-1.5 font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
-          <MapPin aria-hidden className="size-3.5 shrink-0" />
-          <span className="truncate">{job.location}</span>
-        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <p className="flex min-w-0 items-center gap-1.5 font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
+            <MapPin aria-hidden className="size-3.5 shrink-0" />
+            <span className="truncate">{job.location}</span>
+          </p>
+
+          <WorkModeBadge isRemote={job.isRemote} />
+        </div>
       </div>
 
       <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-[#E4E2DC] pt-4 dark:border-[#303137]">
@@ -242,8 +303,8 @@ function JobCard({ job }: { job: JobPost }) {
         </div>
 
         <div className="min-w-0">
-          <dt className={labelClasses}>Compensation</dt>
-          <dd className="mt-2 truncate font-[family-name:var(--font-manrope)] text-sm font-medium text-[#25262B] tabular-nums dark:text-[#EAE7DE]">
+          <dt className={labelClasses}>Salary</dt>
+          <dd className="mt-2 font-[family-name:var(--font-manrope)] text-sm font-medium break-words text-[#25262B] tabular-nums dark:text-[#EAE7DE]">
             {job.compensation}
           </dd>
         </div>
@@ -253,7 +314,7 @@ function JobCard({ job }: { job: JobPost }) {
           <dd className="mt-2 flex items-center gap-1.5 font-[family-name:var(--font-manrope)] text-sm font-semibold text-[#25262B] dark:text-[#EAE7DE]">
             <Users
               aria-hidden
-              className="size-3.5 text-[#777980] dark:text-[#A5A5A2]"
+              className="size-3.5 text-[#5e7be6] dark:text-[#A5A5A2]"
             />
             {job.applicants} Candidates
           </dd>
@@ -278,30 +339,61 @@ function JobCard({ job }: { job: JobPost }) {
 }
 
 // Manage Jobs Page
-const ManageJobsPage = async () => {
+const ManageJobsPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) => {
+  const params = await searchParams
+
+  const activeFilter = params.status?.toLowerCase() ?? "all"
+
   const jobs: JobDocument[] = await getJobs()
 
   // Convert MongoDB documents into UI job data
   const jobPosts: JobPost[] = Array.isArray(jobs)
     ? jobs.map((job) => {
-        const jobId = typeof job._id === "string" ? job._id : job._id.$oid
+        const jobId =
+          typeof job._id === "string" ? job._id : (job._id.$oid ?? "")
 
         return {
+          minSalary: job.minSalary ?? "",
+          maxSalary: job.maxSalary ?? "",
+          salaryFrequency: job.salaryFrequency ?? "",
           id: jobId,
           _id: jobId,
-          title: job.title,
-          department: job.department,
-          company: job.company,
-          location: job.location,
-          type: job.type,
-          compensation: job.compensation,
-          applicants: job.applicants,
-          status: job.status,
-          deadline: job.deadline,
-          posted: job.posted,
+          title: job.title ?? "",
+          category: job.category ?? "",
+          company: job.company ?? "",
+          location: job.location ?? "",
+          type: formatJobType(job.Type),
+          isRemote: Boolean(job.isRemote),
+          compensation: formatSalary(
+            job.minSalary,
+            job.maxSalary,
+            job.salaryFrequency
+          ),
+          applicants: job.applicants ?? 0,
+          status: formatJobStatus(job.status),
+          deadline: job.deadline ?? "",
+          posted: job.posted ?? "",
+          responsibilities: job.responsibilities ?? "",
+          requirements: job.requirements ?? "",
         }
       })
     : []
+
+  // Status filter logic
+  const validFilters = ["all", "active", "closed", "expired"]
+
+  const selectedFilter = validFilters.includes(activeFilter)
+    ? activeFilter
+    : "all"
+
+  const filteredJobPosts =
+    selectedFilter === "all"
+      ? jobPosts
+      : jobPosts.filter((job) => job.status.toLowerCase() === selectedFilter)
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[1400px] min-w-0 overflow-x-clip rounded-2xl bg-[#F8F7F3] px-4 py-6 font-[family-name:var(--font-manrope)] sm:px-6 lg:px-8 lg:py-8 dark:bg-[#191A1E]">
@@ -339,6 +431,33 @@ const ManageJobsPage = async () => {
         </Button>
       </div>
 
+      {/* Job Status Filters */}
+      <div className="mt-8 flex flex-wrap items-center gap-2">
+        {[
+          { label: "All Jobs", value: "all" },
+          { label: "Active", value: "active" },
+          { label: "Closed", value: "closed" },
+          { label: "Expired", value: "expired" },
+        ].map((filter) => (
+          <Link
+            key={filter.value}
+            href={
+              filter.value === "all"
+                ? "/dashboard/recruiter/jobs"
+                : `/dashboard/recruiter/jobs?status=${filter.value}`
+            }
+            className={cn(
+              "rounded-lg border px-4 py-2 font-[family-name:var(--font-space-mono)] text-[10px] font-bold tracking-wide transition-colors",
+              selectedFilter === filter.value
+                ? "border-[#25262B] bg-[#25262B] text-[#EAE7DE] dark:border-[#EAE7DE] dark:bg-[#EAE7DE] dark:text-[#191A1E]"
+                : "border-[#D6D4CE] bg-white text-[#777980] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#A5A5A2] dark:hover:bg-[#303137]"
+            )}
+          >
+            {filter.label}
+          </Link>
+        ))}
+      </div>
+
       {/* Desktop Job Table */}
       <div className="mt-8 hidden w-full max-w-full min-w-0 overflow-x-auto rounded-xl border border-[#D6D4CE] bg-white shadow-sm xl:block dark:border-[#383A40] dark:bg-[#191A1E]">
         <Table className="w-full min-w-[1120px] table-fixed">
@@ -354,7 +473,7 @@ const ManageJobsPage = async () => {
                 Type
               </TableHead>
               <TableHead className={`h-14 w-[12%] px-2 ${labelClasses}`}>
-                Compensation
+                Salary
               </TableHead>
               <TableHead className={`h-14 w-[8%] px-2 ${labelClasses}`}>
                 Applicants
@@ -374,9 +493,9 @@ const ManageJobsPage = async () => {
           </TableHeader>
 
           <TableBody>
-            {jobPosts.length > 0 ? (
-              jobPosts.map((job) => {
-                const Icon = departmentIcons[job.department] ?? Code
+            {filteredJobPosts.length > 0 ? (
+              filteredJobPosts.map((job) => {
+                const Icon = departmentIcons[job.category] ?? Code
 
                 return (
                   <TableRow
@@ -394,7 +513,7 @@ const ManageJobsPage = async () => {
                             {job.title}
                           </p>
                           <p className="mt-1 truncate font-[family-name:var(--font-manrope)] text-[11px] text-[#777980] dark:text-[#A5A5A2]">
-                            {job.department}
+                            {job.category}
                           </p>
                         </div>
                       </div>
@@ -408,6 +527,9 @@ const ManageJobsPage = async () => {
                         <MapPin aria-hidden className="size-3 shrink-0" />
                         <span className="truncate">{job.location}</span>
                       </p>
+                      <div className="mt-1">
+                        <WorkModeBadge isRemote={job.isRemote} />
+                      </div>
                     </TableCell>
 
                     <TableCell className="px-2 py-4">
@@ -420,7 +542,7 @@ const ManageJobsPage = async () => {
                     </TableCell>
 
                     <TableCell className="px-2 py-4">
-                      <p className="truncate font-[family-name:var(--font-manrope)] text-[11px] font-medium text-[#373940] tabular-nums dark:text-[#D6D4CE]">
+                      <p className="font-[family-name:var(--font-manrope)] text-[11px] font-medium break-words text-[#373940] tabular-nums dark:text-[#D6D4CE]">
                         {job.compensation}
                       </p>
                     </TableCell>
@@ -429,7 +551,7 @@ const ManageJobsPage = async () => {
                       <span className="flex items-center gap-1.5 font-[family-name:var(--font-manrope)] text-xs font-semibold text-[#373940] dark:text-[#D6D4CE]">
                         <Users
                           aria-hidden
-                          className="size-3.5 shrink-0 text-[#777980] dark:text-[#A5A5A2]"
+                          className="size-3.5 shrink-0 text-[#5e7be6] dark:text-[#A5A5A2]"
                         />
                         {job.applicants}
                       </span>
@@ -470,8 +592,8 @@ const ManageJobsPage = async () => {
 
       {/* Responsive Job Cards */}
       <ul className="mt-8 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:hidden">
-        {jobPosts.length > 0 ? (
-          jobPosts.map((job) => <JobCard key={job.id} job={job} />)
+        {filteredJobPosts.length > 0 ? (
+          filteredJobPosts.map((job) => <JobCard key={job.id} job={job} />)
         ) : (
           <li className="col-span-full rounded-xl border border-[#D6D4CE] bg-white px-4 py-10 text-center text-sm text-[#777980] dark:border-[#383A40] dark:bg-[#191A1E] dark:text-[#A5A5A2]">
             No job postings found.
@@ -484,7 +606,7 @@ const ManageJobsPage = async () => {
         <p className="font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
           Showing{" "}
           <span className="font-bold text-[#25262B] dark:text-[#EAE7DE]">
-            {jobPosts.length}
+            {filteredJobPosts.length}
           </span>{" "}
           job listings
         </p>
