@@ -7,6 +7,7 @@ import { JobSearch } from "@/app/components/JobSearch"
 import Link from "next/link"
 import {
   Bug,
+  ChevronLeft,
   ChevronRight,
   Code,
   EllipsisVertical,
@@ -346,6 +347,7 @@ const ManageJobsPage = async ({
   searchParams: Promise<{
     status?: string
     q?: string
+    page?: string
   }>
 }) => {
   const params = await searchParams
@@ -410,6 +412,58 @@ const ManageJobsPage = async ({
     return matchesStatus && matchesSearch
   })
 
+  // Pagination
+  const JOBS_PER_PAGE = 6
+
+  const parsedPage = Number.parseInt(params.page ?? "1", 10)
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredJobPosts.length / JOBS_PER_PAGE)
+  )
+
+  const currentPage = Math.min(
+    Math.max(Number.isNaN(parsedPage) ? 1 : parsedPage, 1),
+    totalPages
+  )
+
+  const startIndex = (currentPage - 1) * JOBS_PER_PAGE
+
+  const paginatedJobPosts = filteredJobPosts.slice(
+    startIndex,
+    startIndex + JOBS_PER_PAGE
+  )
+
+  const showingFrom = filteredJobPosts.length === 0 ? 0 : startIndex + 1
+
+  const showingTo = Math.min(
+    startIndex + JOBS_PER_PAGE,
+    filteredJobPosts.length
+  )
+
+  // Pagination URL
+  const getPageHref = (page: number) => {
+    const queryParams = new URLSearchParams()
+
+    if (selectedFilter !== "all") {
+      queryParams.set("status", selectedFilter)
+    }
+
+    if (searchQuery) {
+      queryParams.set("q", searchQuery)
+    }
+
+    if (page > 1) {
+      queryParams.set("page", String(page))
+    }
+
+    const queryString = queryParams.toString()
+
+    return queryString
+      ? `/dashboard/recruiter/jobs?${queryString}`
+      : "/dashboard/recruiter/jobs"
+  }
+
   return (
     <main className="mx-auto min-h-screen w-full max-w-[1400px] min-w-0 overflow-x-clip rounded-2xl bg-[#F8F7F3] px-4 py-6 font-[family-name:var(--font-manrope)] sm:px-6 lg:px-8 lg:py-8 dark:bg-[#191A1E]">
       {/* Page Header */}
@@ -459,17 +513,17 @@ const ManageJobsPage = async ({
             <Link
               key={filter.value}
               href={(() => {
-                const params = new URLSearchParams()
+                const queryParams = new URLSearchParams()
 
                 if (filter.value !== "all") {
-                  params.set("status", filter.value)
+                  queryParams.set("status", filter.value)
                 }
 
                 if (searchQuery) {
-                  params.set("q", searchQuery)
+                  queryParams.set("q", searchQuery)
                 }
 
-                const queryString = params.toString()
+                const queryString = queryParams.toString()
 
                 return queryString
                   ? `/dashboard/recruiter/jobs?${queryString}`
@@ -528,8 +582,8 @@ const ManageJobsPage = async ({
           </TableHeader>
 
           <TableBody>
-            {filteredJobPosts.length > 0 ? (
-              filteredJobPosts.map((job) => {
+            {paginatedJobPosts.length > 0 ? (
+              paginatedJobPosts.map((job) => {
                 const Icon = departmentIcons[job.category] ?? Code
 
                 return (
@@ -627,8 +681,8 @@ const ManageJobsPage = async ({
 
       {/* Responsive Job Cards */}
       <ul className="mt-8 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:hidden">
-        {filteredJobPosts.length > 0 ? (
-          filteredJobPosts.map((job) => <JobCard key={job.id} job={job} />)
+        {paginatedJobPosts.length > 0 ? (
+          paginatedJobPosts.map((job) => <JobCard key={job.id} job={job} />)
         ) : (
           <li className="col-span-full rounded-xl border border-[#D6D4CE] bg-white px-4 py-10 text-center text-sm text-[#777980] dark:border-[#383A40] dark:bg-[#191A1E] dark:text-[#A5A5A2]">
             No job postings found.
@@ -636,10 +690,79 @@ const ManageJobsPage = async ({
         )}
       </ul>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav
+          aria-label="Job pagination"
+          className="mt-8 flex flex-wrap items-center justify-center gap-2"
+        >
+          {/* Previous */}
+          <Button
+            render={
+              <Link
+                href={getPageHref(currentPage - 1)}
+                aria-disabled={currentPage === 1}
+                tabIndex={currentPage === 1 ? -1 : undefined}
+              />
+            }
+            nativeButton={false}
+            variant="outline"
+            disabled={currentPage === 1}
+            className="h-9 gap-1 rounded-lg border-[#D6D4CE] bg-white px-3 font-[family-name:var(--font-space-mono)] text-[10px] text-[#55575F] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#D6D4CE] dark:hover:bg-[#303137]"
+          >
+            <ChevronLeft className="size-3.5" />
+            Previous
+          </Button>
+
+          {/* Page Numbers */}
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+            (page) => (
+              <Button
+                key={page}
+                render={<Link href={getPageHref(page)} />}
+                nativeButton={false}
+                variant="outline"
+                aria-current={currentPage === page ? "page" : undefined}
+                className={cn(
+                  "size-9 rounded-lg font-[family-name:var(--font-space-mono)] text-[11px] font-bold",
+                  currentPage === page
+                    ? "border-[#25262B] bg-[#25262B] text-[#EAE7DE] hover:bg-[#373940] dark:border-[#EAE7DE] dark:bg-[#EAE7DE] dark:text-[#191A1E] dark:hover:bg-white"
+                    : "border-[#D6D4CE] bg-white text-[#777980] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#A5A5A2] dark:hover:bg-[#303137]"
+                )}
+              >
+                {page}
+              </Button>
+            )
+          )}
+
+          {/* Next */}
+          <Button
+            render={
+              <Link
+                href={getPageHref(currentPage + 1)}
+                aria-disabled={currentPage === totalPages}
+                tabIndex={currentPage === totalPages ? -1 : undefined}
+              />
+            }
+            nativeButton={false}
+            variant="outline"
+            disabled={currentPage === totalPages}
+            className="h-9 gap-1 rounded-lg border-[#D6D4CE] bg-white px-3 font-[family-name:var(--font-space-mono)] text-[10px] text-[#55575F] hover:bg-[#E9E7E0] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#D6D4CE] dark:hover:bg-[#303137]"
+          >
+            Next
+            <ChevronRight className="size-3.5" />
+          </Button>
+        </nav>
+      )}
+
       {/* Bottom Summary */}
       <div className="mt-6 flex flex-col gap-2 rounded-xl border border-[#D6D4CE]/60 bg-[#F0EFEA]/50 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-[#383A40] dark:bg-[#25262B]/50">
         <p className="font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
           Showing{" "}
+          <span className="font-bold text-[#25262B] dark:text-[#EAE7DE]">
+            {showingFrom}-{showingTo}
+          </span>{" "}
+          of{" "}
           <span className="font-bold text-[#25262B] dark:text-[#EAE7DE]">
             {filteredJobPosts.length}
           </span>{" "}

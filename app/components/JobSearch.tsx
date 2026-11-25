@@ -20,30 +20,38 @@ export function JobSearch({ initialQuery }: JobSearchProps) {
   }, [initialQuery])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
+  // Query পরিবর্তন না হলে URL update করবে না
+  if (query.trim() === initialQuery) return
 
-      if (query.trim()) {
-        params.set("q", query.trim())
-      } else {
-        params.delete("q")
-      }
+  const timer = setTimeout(() => {
+    const params = new URLSearchParams(searchParams.toString())
 
-      const queryString = params.toString()
+    // Search পরিবর্তন হলে প্রথম পেজে ফিরে যাবে
+    params.delete("page")
 
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+    if (query.trim()) {
+      params.set("q", query.trim())
+    } else {
+      params.delete("q")
+    }
 
-      const currentUrl = searchParams.toString()
-        ? `${pathname}?${searchParams.toString()}`
-        : pathname
+    const queryString = params.toString()
 
-      if (newUrl !== currentUrl) {
-        router.replace(newUrl, { scroll: false })
-      }
-    }, 500)
+    const newUrl = queryString
+      ? `${pathname}?${queryString}`
+      : pathname
 
-    return () => clearTimeout(timer)
-  }, [query, pathname, router, searchParams])
+    const currentUrl = searchParams.toString()
+      ? `${pathname}?${searchParams.toString()}`
+      : pathname
+
+    if (newUrl !== currentUrl) {
+      router.replace(newUrl, { scroll: false })
+    }
+  }, 400)
+
+  return () => clearTimeout(timer)
+}, [query, initialQuery, pathname, router, searchParams])
 
   const handleClear = () => {
     setQuery("")
