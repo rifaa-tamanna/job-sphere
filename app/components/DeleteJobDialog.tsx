@@ -33,17 +33,31 @@ export function DeleteJobDialog({ job }: DeleteJobDialogProps) {
   const router = useRouter()
 
   const handleDelete = async () => {
-    const res = await deleteJob(job._id)
+    try {
+      const result = await deleteJob(job._id)
 
-    console.log("Deleting", job._id, res)
+      if (result.deletedCount > 0) {
+        setOpen(false)
 
-    if (res.deletedCount) {
-      setOpen(false)
+        toast.add({
+          title: "Job Deleted",
+          description: "The job has been permanently deleted.",
+        })
+
+        router.refresh()
+      } else {
+        throw new Error("Job could not be deleted.")
+      }
+    } catch (error) {
+      console.error("Delete job failed:", error)
+
       toast.add({
-        title: "Job Deleted",
-        description: "The job has been permanently deleted",
+        title: "Delete Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
       })
-      router.refresh()
     }
   }
 

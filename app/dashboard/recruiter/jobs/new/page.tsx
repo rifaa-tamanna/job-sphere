@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import type { ComponentProps, ComponentType, FormEvent, ReactNode } from "react"
 import Link from "next/link"
 
@@ -10,7 +11,6 @@ import {
   Building2,
   BriefcaseBusiness,
   CalendarDays,
-  CheckCircle2,
   ChevronRight,
   FileText,
   Globe2,
@@ -29,7 +29,12 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/components/ui/toast"
 import { createJob } from "@/lib/actions/jobs"
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+
+const JOBS_PER_PAGE = 6
 
 const jobTypes = ["Full-time", "Part-time", "Contract", "Internship"]
 
@@ -88,7 +93,7 @@ function SectionHeading({
           STEP {step}
         </p>
 
-        <h2 className="mt-1 font-[family-name:var(--font-manrope)] text-lg font-bold tracking-tight text-[#24252A] sm:text-xl dark:text-[#EAE7DE]">
+        <h2 className="mt-1 text-lg font-bold tracking-tight text-[#24252A] sm:text-xl dark:text-[#EAE7DE]">
           {title}
         </h2>
 
@@ -132,24 +137,94 @@ function IconInput({
 }
 
 export default function NewJobPage() {
+  const router = useRouter()
+
   const [isRemote, setIsRemote] = useState(false)
-  const [message] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const data = Object.fromEntries(new FormData(event.currentTarget).entries())
+    if (isSubmitting) return
 
-    const jobData = {
-      ...data,
-      isRemote,
+    setIsSubmitting(true)
+
+    try {
+      const formData = new FormData(event.currentTarget)
+      const data = Object.fromEntries(formData.entries())
+
+      // Match the field names expected by the backend.
+      const jobData = {
+        title: data.title,
+        company: data.company,
+        category: data.category,
+        Type: data.jobType,
+        isRemote,
+        location: data.location,
+        deadline: data.deadline,
+        minSalary: data.minSalary,
+        maxSalary: data.maxSalary,
+        salaryFrequency: data.frequency,
+        responsibilities: data.responsibilities,
+        requirements: data.qualifications,
+      }
+
+      const result = await createJob(jobData)
+
+      if (
+        result &&
+        typeof result === "object" &&
+        (("success" in result && result.success === false) ||
+          ("error" in result && result.error))
+      ) {
+        throw new Error(
+          "error" in result && result.error
+            ? String(result.error)
+            : "Unable to publish the job. Please try again."
+        )
+      }
+
+      // Fetch the latest jobs after publishing.
+      const response = await fetch(`${BASE_URL}/jobs`, {
+        method: "GET",
+        cache: "no-store",
+      })
+
+      if (!response.ok) {
+        throw new Error("Job published, but could not refresh the job list.")
+      }
+
+      const updatedJobs = await response.json()
+
+      if (!Array.isArray(updatedJobs)) {
+        throw new Error("Could not retrieve the updated job list.")
+      }
+
+      // Calculate the last pagination page.
+      const totalJobs = updatedJobs.length
+
+      const lastPage = Math.max(1, Math.ceil(totalJobs / JOBS_PER_PAGE))
+
+      toast.add({
+        title: "Job Published",
+        description: "Your job has been published successfully.",
+      })
+
+      router.push(`/dashboard/recruiter/jobs?page=${lastPage}`)
+      router.refresh()
+    } catch (error) {
+      console.error("Job creation failed:", error)
+
+      toast.add({
+        title: "Publish Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
+      })
+
+      setIsSubmitting(false)
     }
-
-    console.log("[Post a New Job] collected form data:", jobData)
-
-    const result = await createJob(jobData)
-
-    console.log("result", result)
   }
 
   return (
@@ -182,7 +257,7 @@ export default function NewJobPage() {
                 Recruiter Portal
               </div>
 
-              <h1 className="mt-3 font-[family-name:var(--font-bodoni)] text-4xl font-semibold tracking-[-1.5px] text-[#24252A] sm:text-5xl lg:text-[50px] dark:text-[#EAE7DE]">
+              <h1 className="mt-3 text-4xl font-semibold tracking-[-1.5px] text-[#24252A] sm:text-5xl lg:text-[50px] dark:text-[#EAE7DE]">
                 Post a New Job
               </h1>
 
@@ -209,17 +284,6 @@ export default function NewJobPage() {
             </div>
           </div>
         </section>
-
-        {/* Success Message */}
-        {message && (
-          <div
-            role="status"
-            className="flex items-center gap-3 rounded-lg border border-[#A5B49E] bg-[#EEF2EB] px-5 py-4 text-sm text-[#3F5A3D] dark:border-[#52664F] dark:bg-[#29342A] dark:text-[#C5D7BE]"
-          >
-            <CheckCircle2 className="size-5 shrink-0" />
-            <p>{message}</p>
-          </div>
-        )}
 
         {/* Form */}
         <form
@@ -386,9 +450,7 @@ export default function NewJobPage() {
               {/* Salary Details */}
               <div className="space-y-5 border-t border-[#E5E3DD] pt-6 dark:border-[#383A40]">
                 <div>
-                  <h3 className="font-[family-name:var(--font-manrope)] text-base font-bold">
-                    Salary Details
-                  </h3>
+                  <h3 className="text-base font-bold">Salary Details</h3>
 
                   <p className="mt-1 text-xs text-[#92939A]">
                     Specify the expected compensation for this role.
@@ -504,9 +566,7 @@ export default function NewJobPage() {
           {/* Submit Section */}
           <section className="flex flex-col gap-5 rounded-xl border border-[#D6D4CE] bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6 dark:border-[#383A40] dark:bg-[#202126]">
             <div>
-              <p className="font-[family-name:var(--font-manrope)] text-base font-bold">
-                Ready to publish your job?
-              </p>
+              <p className="text-base font-bold">Ready to publish your job?</p>
 
               <p className="mt-1 text-xs text-[#92939A]">
                 Review your information before submitting.
@@ -515,10 +575,14 @@ export default function NewJobPage() {
 
             <Button
               type="submit"
-              className="group h-12 w-full gap-3 rounded-lg bg-[#25262B] px-8 font-[family-name:var(--font-space-mono)] text-xs font-bold tracking-wide text-[#EAE7DE] shadow-none transition-all hover:-translate-y-0.5 hover:bg-[#44464D] sm:w-auto dark:bg-[#E5E2D9] dark:text-[#202126] dark:hover:bg-white"
+              disabled={isSubmitting}
+              className="group h-12 w-full gap-3 rounded-lg bg-[#25262B] px-8 font-[family-name:var(--font-space-mono)] text-xs font-bold tracking-wide text-[#EAE7DE] shadow-none transition-all hover:-translate-y-0.5 hover:bg-[#44464D] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto dark:bg-[#E5E2D9] dark:text-[#202126] dark:hover:bg-white"
             >
-              PUBLISH JOB
-              <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              {isSubmitting ? "PUBLISHING..." : "PUBLISH JOB"}
+
+              {!isSubmitting && (
+                <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              )}
             </Button>
           </section>
         </form>

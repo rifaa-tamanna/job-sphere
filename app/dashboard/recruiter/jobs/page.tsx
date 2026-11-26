@@ -195,7 +195,7 @@ function WorkModeBadge({ isRemote }: { isRemote: boolean }) {
   return (
     <Badge
       variant="outline"
-      className="h-6 rounded-md border-[#D6D4CE] bg-[#F0EFEA] px-2 font-[family-name:var(--font-manrope)] text-[10px] font-medium text-[#55575F] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#D6D4CE]"
+      className="h-6 rounded-md border-[#D6D4CE] bg-[#F0EFEA] px-2 font-[family-name:var(--font-space-mono)] text-[10px] font-medium text-[#55575F] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#D6D4CE]"
     >
       {isRemote ? "Remote" : "On-site"}
     </Badge>
@@ -203,7 +203,6 @@ function WorkModeBadge({ isRemote }: { isRemote: boolean }) {
 }
 
 // Row Actions
-
 export function RowActions({ job }: { job: JobPost }) {
   return (
     <div className="flex shrink-0 items-center justify-end gap-1.5">
@@ -267,11 +266,11 @@ function JobCard({ job }: { job: JobPost }) {
           </span>
 
           <div className="min-w-0">
-            <p className="truncate font-[family-name:var(--font-manrope)] text-sm font-bold text-[#25262B] dark:text-[#EAE7DE]">
+            <p className="truncate font-[family-name:var(--font-space-mono)] text-sm font-bold text-[#25262B] dark:text-[#EAE7DE]">
               {job.title}
             </p>
 
-            <p className="mt-1 truncate font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
+            <p className="mt-1 truncate font-[family-name:var(--font-space-mono)] text-xs text-[#777980] dark:text-[#A5A5A2]">
               {job.category}
             </p>
           </div>
@@ -281,12 +280,12 @@ function JobCard({ job }: { job: JobPost }) {
       </div>
 
       <div className="mt-5">
-        <p className="font-[family-name:var(--font-manrope)] text-sm font-semibold text-[#373940] dark:text-[#D6D4CE]">
+        <p className="font-[family-name:var(--font-space-mono)] text-sm font-semibold text-[#373940] dark:text-[#D6D4CE]">
           {job.company}
         </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <p className="flex min-w-0 items-center gap-1.5 font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
+          <p className="flex min-w-0 items-center gap-1.5 font-[family-name:var(--font-space-mono)] text-xs text-[#777980] dark:text-[#A5A5A2]">
             <MapPin aria-hidden className="size-3.5 shrink-0" />
             <span className="truncate">{job.location}</span>
           </p>
@@ -301,7 +300,7 @@ function JobCard({ job }: { job: JobPost }) {
           <dd className="mt-2">
             <Badge
               variant="outline"
-              className="h-7 max-w-full rounded-md border-[#D6D4CE] bg-[#F8F7F3] px-2 font-[family-name:var(--font-manrope)] text-[11px] font-medium text-[#55575F] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#D6D4CE]"
+              className="h-7 max-w-full rounded-md border-[#D6D4CE] bg-[#F8F7F3] px-2 font-[family-name:var(--font-space-mono)] text-[11px] font-medium text-[#55575F] dark:border-[#44464B] dark:bg-[#25262B] dark:text-[#D6D4CE]"
             >
               {job.type}
             </Badge>
@@ -310,14 +309,14 @@ function JobCard({ job }: { job: JobPost }) {
 
         <div className="min-w-0">
           <dt className={labelClasses}>Salary</dt>
-          <dd className="mt-2 font-[family-name:var(--font-manrope)] text-sm font-medium break-words text-[#25262B] tabular-nums dark:text-[#EAE7DE]">
+          <dd className="mt-2 font-[family-name:var(--font-space-mono)] text-sm font-medium break-words text-[#25262B] tabular-nums dark:text-[#EAE7DE]">
             {job.compensation}
           </dd>
         </div>
 
         <div>
           <dt className={labelClasses}>Applicants</dt>
-          <dd className="mt-2 flex items-center gap-1.5 font-[family-name:var(--font-manrope)] text-sm font-semibold text-[#25262B] dark:text-[#EAE7DE]">
+          <dd className="mt-2 flex items-center gap-1.5 font-[family-name:var(--font-space-mono)] text-sm font-semibold text-[#25262B] dark:text-[#EAE7DE]">
             <Users
               aria-hidden
               className="size-3.5 text-[#5e7be6] dark:text-[#A5A5A2]"
@@ -328,7 +327,7 @@ function JobCard({ job }: { job: JobPost }) {
 
         <div className="min-w-0">
           <dt className={labelClasses}>Deadline</dt>
-          <dd className="mt-2 font-[family-name:var(--font-manrope)] text-sm text-[#25262B] dark:text-[#EAE7DE]">
+          <dd className="mt-2 font-[family-name:var(--font-space-mono)] text-sm text-[#25262B] dark:text-[#EAE7DE]">
             {formatDeadline(job.deadline)}
             <span className="mt-1 block text-xs text-[#92939A] dark:text-[#777980]">
               {job.posted}
@@ -484,7 +483,7 @@ const ManageJobsPage = async ({
             </span>
           </nav>
 
-          <h1 className="mt-5 font-[family-name:var(--font-manrope)] text-2xl font-extrabold tracking-[-0.8px] text-[#25262B] sm:text-3xl dark:text-[#EAE7DE]">
+          <h1 className="mt-5 font-[family-name:var(--font-space-mono)] text-2xl font-extrabold tracking-[-0.8px] text-[#25262B] sm:text-3xl dark:text-[#EAE7DE]">
             Manage Job Posts
           </h1>
 
@@ -602,10 +601,10 @@ const ManageJobsPage = async ({
                         </span>
 
                         <div className="min-w-0">
-                          <p className="truncate font-[family-name:var(--font-manrope)] text-xs font-bold text-[#25262B] dark:text-[#EAE7DE]">
+                          <p className="truncate font-[family-name:var(--font-space-mono)] text-xs font-bold text-[#25262B] dark:text-[#EAE7DE]">
                             {job.title}
                           </p>
-                          <p className="mt-1 truncate font-[family-name:var(--font-manrope)] text-[11px] text-[#777980] dark:text-[#A5A5A2]">
+                          <p className="mt-1 truncate font-[family-name:var(--font-space-mono)] text-[11px] text-[#777980] dark:text-[#A5A5A2]">
                             {job.category}
                           </p>
                         </div>
@@ -613,10 +612,10 @@ const ManageJobsPage = async ({
                     </TableCell>
 
                     <TableCell className="min-w-0 px-3 py-4">
-                      <p className="truncate font-[family-name:var(--font-manrope)] text-xs font-semibold text-[#373940] dark:text-[#D6D4CE]">
+                      <p className="truncate font-[family-name:var(--font-space-mono)] text-xs font-semibold text-[#373940] dark:text-[#D6D4CE]">
                         {job.company}
                       </p>
-                      <p className="mt-1 flex min-w-0 items-center gap-1 truncate font-[family-name:var(--font-manrope)] text-[10px] text-[#777980] dark:text-[#A5A5A2]">
+                      <p className="mt-1 flex min-w-0 items-center gap-1 truncate font-[family-name:var(--font-space-mono)] text-[10px] text-[#777980] dark:text-[#A5A5A2]">
                         <MapPin aria-hidden className="size-3 shrink-0" />
                         <span className="truncate">{job.location}</span>
                       </p>
@@ -628,20 +627,20 @@ const ManageJobsPage = async ({
                     <TableCell className="px-2 py-4">
                       <Badge
                         variant="outline"
-                        className="h-7 max-w-full rounded-md border-[#D6D4CE] bg-transparent px-2 font-[family-name:var(--font-manrope)] text-[10px] font-medium text-[#55575F] dark:border-[#44464B] dark:text-[#D6D4CE]"
+                        className="h-7 max-w-full rounded-md border-[#D6D4CE] bg-transparent px-2 font-[family-name:var(--font-space-mono)] text-[10px] font-medium text-[#55575F] dark:border-[#44464B] dark:text-[#D6D4CE]"
                       >
                         <span className="truncate">{job.type}</span>
                       </Badge>
                     </TableCell>
 
                     <TableCell className="px-2 py-4">
-                      <p className="font-[family-name:var(--font-manrope)] text-[11px] font-medium break-words text-[#373940] tabular-nums dark:text-[#D6D4CE]">
+                      <p className="font-[family-name:var(--font-space-mono)] text-[11px] font-medium break-words text-[#373940] tabular-nums dark:text-[#D6D4CE]">
                         {job.compensation}
                       </p>
                     </TableCell>
 
                     <TableCell className="px-2 py-4">
-                      <span className="flex items-center gap-1.5 font-[family-name:var(--font-manrope)] text-xs font-semibold text-[#373940] dark:text-[#D6D4CE]">
+                      <span className="flex items-center gap-1.5 font-[family-name:var(--font-space-mono)] text-xs font-semibold text-[#373940] dark:text-[#D6D4CE]">
                         <Users
                           aria-hidden
                           className="size-3.5 shrink-0 text-[#5e7be6] dark:text-[#A5A5A2]"
@@ -655,10 +654,10 @@ const ManageJobsPage = async ({
                     </TableCell>
 
                     <TableCell className="px-2 py-4 whitespace-nowrap">
-                      <p className="font-[family-name:var(--font-manrope)] text-[11px] text-[#373940] dark:text-[#D6D4CE]">
+                      <p className="font-[family-name:var(--font-space-mono)] text-[11px] text-[#373940] dark:text-[#D6D4CE]">
                         {formatDeadline(job.deadline)}
                       </p>
-                      <p className="mt-1 truncate font-[family-name:var(--font-manrope)] text-[10px] text-[#92939A] dark:text-[#777980]">
+                      <p className="mt-1 truncate font-[family-name:var(--font-space-mono)] text-[10px] text-[#92939A] dark:text-[#777980]">
                         {job.posted}
                       </p>
                     </TableCell>
@@ -761,7 +760,7 @@ const ManageJobsPage = async ({
 
       {/* Bottom Summary */}
       <div className="mt-6 flex flex-col gap-2 rounded-xl border border-[#D6D4CE]/60 bg-[#F0EFEA]/50 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-[#383A40] dark:bg-[#25262B]/50">
-        <p className="font-[family-name:var(--font-manrope)] text-xs text-[#777980] dark:text-[#A5A5A2]">
+        <p className="font-[family-name:var(--font-space-mono)] text-xs text-[#777980] dark:text-[#A5A5A2]">
           Showing{" "}
           <span className="font-bold text-[#25262B] dark:text-[#EAE7DE]">
             {showingFrom}-{showingTo}
