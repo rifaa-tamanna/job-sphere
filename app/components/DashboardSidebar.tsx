@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
+
 import {
   Activity,
   BarChart3,
@@ -13,18 +14,17 @@ import {
   CreditCard,
   FileText,
   LayoutDashboard,
-  LogOut,
   PlusCircle,
   Settings,
-  Star,
   Users,
-  UserRound,
   UserSearch,
   Search,
+  ArrowUpRight,
 } from "lucide-react"
+
 import type { LucideIcon } from "lucide-react"
 
-import { useSession, signOut } from "@/lib/auth-client"
+import { useSession } from "@/lib/auth-client"
 
 import {
   Sidebar,
@@ -217,18 +217,18 @@ const bottomActionByRole: Record<UserRole, BottomAction> = {
   },
 }
 
+const dashboardRoutes: Record<UserRole, string> = {
+  seeker: "/dashboard/seeker",
+  recruiter: "/dashboard/recruiter",
+  admin: "/dashboard/admin",
+}
+
 function isUserRole(role: unknown): role is UserRole {
   return role === "seeker" || role === "recruiter" || role === "admin"
 }
 
-function SearchIcon(props: React.ComponentProps<LucideIcon>) {
-  return <UserSearch {...props} />
-}
-
 export default function DashboardSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-
   const { data: session } = useSession()
 
   const role: UserRole = isUserRole(session?.user?.role)
@@ -250,31 +250,23 @@ export default function DashboardSidebar() {
     )
     .sort((a, b) => b.url.length - a.url.length)[0]
 
-  const handleLogout = async () => {
-    await signOut()
-    router.push("/")
-    router.refresh()
-  }
-
   return (
-    <Sidebar className="border-r border-[#D6D4CE] bg-[#F8F7F3] dark:border-[#383A40] dark:bg-[#191A1E]">
+    <Sidebar className="border-r border-[#383A40] bg-[#191A1E] font-[family-name:var(--font-space-mono)]">
       {/* Logo */}
-      <SidebarHeader className="border-b border-[#D6D4CE] px-4 py-5 dark:border-[#383A40]">
+      <SidebarHeader className="border-b border-[#383A40] bg-[#191A1E] px-4 py-5">
         <Link href="/" className="group flex shrink-0 items-center gap-3">
-          {/* Logo Icon */}
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#A5A39C] bg-[#25262B] text-[#E8E5DC] transition-transform duration-300 group-hover:rotate-[-8deg] dark:border-[#777980]">
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#777980] bg-[#25262B] text-[#E8E5DC] transition-transform duration-300 group-hover:rotate-[-8deg]">
             <BriefcaseBusiness size={21} strokeWidth={1.5} />
 
-            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border-2 border-[#F8F7F3] bg-[#B8B5AC] dark:border-[#191A1E]" />
+            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border-2 border-[#191A1E] bg-[#B8B5AC]" />
           </div>
 
-          {/* Brand Typography */}
           <div className="flex items-baseline gap-1">
-            <span className="font-[family-name:var(--font-bodoni)] text-[31px] font-semibold tracking-[-1.5px] text-[#24252A] dark:text-[#EAE7DE]">
+            <span className="text-[25px] font-bold tracking-[-1.5px] text-[#EAE7DE]">
               Job
             </span>
 
-            <span className="font-[family-name:var(--font-space-mono)] text-[15px] font-bold tracking-[-0.8px] text-[#777980] dark:text-[#A9A9A7]">
+            <span className="text-[15px] font-bold tracking-[-0.8px] text-[#A9A9A7]">
               SPHERE
             </span>
 
@@ -283,21 +275,19 @@ export default function DashboardSidebar() {
         </Link>
 
         {/* Logged-in User Information */}
-        <div className="mt-5 flex items-center gap-3 rounded-xl border border-[#D6D4CE] bg-white/60 p-3 dark:border-[#383A40] dark:bg-[#222329]">
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAE8E1] text-sm font-semibold text-[#24252A] dark:bg-[#383A40] dark:text-[#F1EEE6]">
+        <div className="mt-5 flex items-center gap-3 rounded-xl border border-[#383A40] bg-[#222329] p-3">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#383A40] text-sm font-semibold text-[#F1EEE6]">
             {userInitial}
 
-            <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-[#F8F7F3] bg-green-500 dark:border-[#222329]" />
+            <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-[#222329] bg-green-500" />
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-[#24252A] dark:text-[#F1EEE6]">
+            <p className="truncate text-sm font-semibold text-[#F1EEE6]">
               {userName}
             </p>
 
-            <p className="truncate text-xs text-[#777980] dark:text-[#A1A2A8]">
-              {userEmail}
-            </p>
+            <p className="truncate text-xs text-[#A1A2A8]">{userEmail}</p>
 
             <p className="mt-1 text-[10px] font-medium tracking-wider text-[#92939A] uppercase">
               {role}
@@ -307,9 +297,9 @@ export default function DashboardSidebar() {
       </SidebarHeader>
 
       {/* Scrollable Menu */}
-      <SidebarContent className="min-h-0 flex-1 [scrollbar-width:thin] [scrollbar-color:#A5A39C_transparent] overflow-y-auto overscroll-contain px-3 py-4 dark:[scrollbar-color:#55575F_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#D6D4CE] dark:[&::-webkit-scrollbar-thumb]:bg-[#414249] [&::-webkit-scrollbar-track]:bg-transparent">
+      <SidebarContent className="min-h-0 flex-1 [scrollbar-width:thin] [scrollbar-color:#55575F_transparent] overflow-y-auto overscroll-contain bg-[#191A1E] px-3 py-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#414249] [&::-webkit-scrollbar-track]:bg-transparent">
         <div className="mb-3 px-3">
-          <p className="text-[10px] font-[var(--font-space-mono)] font-medium tracking-[0.16em] text-[#92939A] uppercase">
+          <p className="text-[10px] font-medium tracking-[0.16em] text-[#92939A] uppercase">
             Main Menu
           </p>
         </div>
@@ -327,8 +317,8 @@ export default function DashboardSidebar() {
                   aria-current={isActive ? "page" : undefined}
                   className={`flex h-11 w-full items-center gap-2 rounded-lg px-3 text-[13px] font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-[#EAE8E1] text-[#24252A] dark:bg-[#303137] dark:text-[#F1EEE6]"
-                      : "text-[#777980] hover:bg-[#EEEDE7] hover:text-[#25262B] dark:text-[#A1A2A8] dark:hover:bg-[#27282E] dark:hover:text-[#F1EEE6]"
+                      ? "bg-[#303137] text-[#F1EEE6]"
+                      : "text-[#A1A2A8] hover:bg-[#25262B] hover:text-[#F1EEE6]"
                   }`}
                 >
                   <Icon size={18} strokeWidth={1.7} />
@@ -336,7 +326,7 @@ export default function DashboardSidebar() {
                   <span>{item.label}</span>
 
                   {isActive && (
-                    <span className="ml-auto h-5 w-[3px] rounded-full bg-[#77736A] dark:bg-[#C1BEB5]" />
+                    <span className="ml-auto h-5 w-[3px] rounded-full bg-[#C1BEB5]" />
                   )}
                 </Link>
               </SidebarMenuItem>
@@ -346,35 +336,34 @@ export default function DashboardSidebar() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="border-t border-[#D6D4CE] px-3 py-4 dark:border-[#383A40]">
+      <SidebarFooter className="border-t border-[#383A40] bg-[#191A1E] px-3 py-4">
         <SidebarMenu className="gap-2">
-          {/* Bottom Action */}
-
+          {/* Dynamic Bottom Action */}
           <SidebarMenuItem>
             <Link
               href={bottomAction.url}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#24252A] px-3 text-[13px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#3A3B40] hover:shadow-md dark:bg-[#F1EEE6] dark:text-[#191A1E] dark:hover:bg-white"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#EAE7DE] px-3 text-[13px] font-semibold text-[#191A1E] shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md"
             >
               <bottomAction.icon size={18} strokeWidth={2} />
               <span>{bottomAction.label}</span>
             </Link>
           </SidebarMenuItem>
 
-          {/* Logout */}
+          {/* Dynamic Dashboard Shortcut */}
           <SidebarMenuItem>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#D6D4CE] bg-[#EEEDE7] px-3 text-[13px] font-semibold text-[#A34B43] transition-all duration-200 hover:border-[#C77B72] hover:bg-[#F3E2DF] dark:border-[#414249] dark:bg-[#27282E] dark:text-[#E58C83] dark:hover:border-[#9D5D57] dark:hover:bg-[#392B2C]"
+            <Link
+              href={dashboardRoutes[role]}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#44464B] bg-[#25262B] px-3 text-[12px] font-medium text-[#D0CEC7] transition-all duration-200 hover:border-[#777980] hover:bg-[#303137] hover:text-white"
             >
-              <LogOut size={18} strokeWidth={2} />
-              <span>Logout</span>
-            </button>
+              <LayoutDashboard size={17} />
+              <span>My Dashboard</span>
+              <ArrowUpRight size={14} className="ml-auto" />
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
 
         <div className="mt-4 px-3">
-          <p className="text-[9px] font-[var(--font-space-mono)] tracking-wider text-[#92939A]">
+          <p className="text-[9px] tracking-wider text-[#92939A]">
             © 2026 JobSphere
           </p>
         </div>
